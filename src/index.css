@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  /* Urbanly Brand Colors */
+  --color-urban-beige: #F5F5F0;     /* Background / Soft sections */
+  --color-urban-sand: #C2B280;      /* Primary Buttons / Accents */
+  --color-urban-sand-dark: #A69668; /* Hover states */
+  --color-urban-charcoal: #2D2D2D;  /* Main Text */
+  --color-urban-taupe: #8C857B;     /* Subtext / Borders */
+}
+
+body {
+  background-color: var(--color-urban-beige);
+  color: var(--color-urban-charcoal);
+  font-family: 'Inter', sans-serif;
+}
