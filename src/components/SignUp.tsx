@@ -1,51 +1,49 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const SignUp: React.FC = () => {
+  const navigate = useNavigate();
+
+  // 1. THIS IS THE TRIGGER: It must be linked to the form
+  const handleSignUp = (e: React.FormEvent) => {
+    e.preventDefault(); // Prevents the page from refreshing
+    console.log("Button clicked, navigating to dashboard..."); 
+    navigate('/dashboard'); // This must match the path in your App.tsx
+  };
+
   return (
     <div className="flex min-h-screen bg-urban-beige">
-      {/* LEFT SIDE: The Architectural Visual */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-urban-sand">
         <div className="absolute inset-0 z-0">
           <img 
             src="/hero-exterior.jpeg" 
-            alt="Modern Urbanly Apartment Exterior" 
+            alt="Urbanly Apartments" 
             className="w-full h-full object-cover"
           />
-          {/* Subtle beige overlay to blend the photo with the brand theme */}
           <div className="absolute inset-0 bg-urban-sand/15 mix-blend-multiply" />
-          {/* Bottom gradient for text legibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         </div>
-        
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <h1 className="text-6xl font-bold mb-4 tracking-tight drop-shadow-md">Urbanly.</h1>
-          <p className="text-2xl font-light leading-relaxed max-w-md drop-shadow-sm">
-            Your bridge from home to independence. 
-            Designed for the modern Kenyan lifestyle.
+          <h1 className="text-6xl font-bold mb-4 tracking-tight">Urbanly.</h1>
+          <p className="text-2xl font-light leading-relaxed max-w-md">
+            Your bridge from home to independence.
           </p>
         </div>
       </div>
 
-      {/* RIGHT SIDE: The Minimalist Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-white">
         <div className="max-w-md w-full mx-auto">
-          {/* Mobile-only branding */}
-          <div className="lg:hidden mb-12">
-            <h2 className="text-3xl font-bold text-urban-sand">Urbanly.</h2>
-          </div>
-          
           <div className="mb-10 text-left">
             <h3 className="text-3xl font-semibold text-urban-charcoal mb-3">Begin your journey</h3>
             <p className="text-urban-taupe text-lg">Enter your details to build your move-out plan.</p>
           </div>
 
-          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          {/* 2. THE CRITICAL CONNECTION: onSubmit must be on the FORM tag */}
+          <form className="space-y-6" onSubmit={handleSignUp}>
             <div className="group">
-              <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
-                Full Name
-              </label>
+              <label className="block text-sm font-medium text-urban-charcoal mb-2">Full Name</label>
               <input 
+                required
                 type="text" 
                 placeholder="Jane Doe"
                 className="w-full px-4 py-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-urban-sand/30 focus:border-urban-sand transition-all"
@@ -53,10 +51,9 @@ const SignUp: React.FC = () => {
             </div>
 
             <div className="group">
-              <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
-                Email Address
-              </label>
+              <label className="block text-sm font-medium text-urban-charcoal mb-2">Email Address</label>
               <input 
+                required
                 type="email" 
                 placeholder="jane@urbanly.co.ke"
                 className="w-full px-4 py-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-urban-sand/30 focus:border-urban-sand transition-all"
@@ -64,27 +61,16 @@ const SignUp: React.FC = () => {
             </div>
 
             <div className="group">
-              <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
-                Current Goal
-              </label>
-              <select className="w-full px-4 py-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-urban-sand/30 focus:border-urban-sand transition-all appearance-none cursor-pointer">
-                <option>Moving out from my parents' home</option>
-                <option>Relocating to a new neighborhood</option>
-                <option>Budgeting for future independence</option>
-              </select>
-            </div>
-
-            <div className="group">
-              <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-urban-charcoal mb-2">Password</label>
               <input 
+                required
                 type="password" 
                 placeholder="••••••••"
                 className="w-full px-4 py-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-urban-sand/30 focus:border-urban-sand transition-all"
               />
             </div>
 
+            {/* 3. THE BUTTON TYPE: Must be "submit" */}
             <button 
               type="submit" 
               className="w-full bg-urban-sand hover:bg-urban-sand-dark text-white font-bold text-lg py-4 px-4 rounded-xl shadow-lg shadow-urban-sand/20 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer"
@@ -96,7 +82,7 @@ const SignUp: React.FC = () => {
           <div className="mt-10 text-center border-t border-gray-100 pt-8">
             <p className="text-urban-taupe font-medium">
               Already using Urbanly? 
-              <Link to="/signin" className="ml-2 text-urban-sand font-bold hover:underline transition-all">
+              <Link to="/signin" className="ml-2 text-urban-sand font-bold hover:underline">
                 Sign In
               </Link>
             </p>
