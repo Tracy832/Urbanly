@@ -1,28 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const SignUp: React.FC = () => {
+const SignIn: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-urban-beige">
-      {/* LEFT SIDE: The Architectural Visual */}
+      {/* LEFT SIDE: The Architectural Visual (Consistent Branding) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-urban-sand">
         <div className="absolute inset-0 z-0">
           <img 
             src="/hero-exterior.jpeg" 
-            alt="Modern Urbanly Apartment Exterior" 
+            alt="Urbanly Modern Living" 
             className="w-full h-full object-cover"
           />
-          {/* Subtle beige overlay to blend the photo with the brand theme */}
-          <div className="absolute inset-0 bg-urban-sand/15 mix-blend-multiply" />
+          {/* Matching beige overlay */}
+          <div className="absolute inset-0 bg-urban-sand/20 mix-blend-multiply" />
           {/* Bottom gradient for text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
         
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
           <h1 className="text-6xl font-bold mb-4 tracking-tight drop-shadow-md">Urbanly.</h1>
           <p className="text-2xl font-light leading-relaxed max-w-md drop-shadow-sm">
-            Your bridge from home to independence. 
-            Designed for the modern Kenyan lifestyle.
+            Welcome back. Let's pick up where you left off on your move.
           </p>
         </div>
       </div>
@@ -34,24 +33,13 @@ const SignUp: React.FC = () => {
           <div className="lg:hidden mb-12">
             <h2 className="text-3xl font-bold text-urban-sand">Urbanly.</h2>
           </div>
-          
+
           <div className="mb-10 text-left">
-            <h3 className="text-3xl font-semibold text-urban-charcoal mb-3">Begin your journey</h3>
-            <p className="text-urban-taupe text-lg">Enter your details to build your move-out plan.</p>
+            <h3 className="text-3xl font-semibold text-urban-charcoal mb-3">Welcome back</h3>
+            <p className="text-urban-taupe text-lg">Enter your credentials to access your dashboard.</p>
           </div>
 
           <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-            <div className="group">
-              <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
-                Full Name
-              </label>
-              <input 
-                type="text" 
-                placeholder="Jane Doe"
-                className="w-full px-4 py-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-urban-sand/30 focus:border-urban-sand transition-all"
-              />
-            </div>
-
             <div className="group">
               <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
                 Email Address
@@ -64,20 +52,14 @@ const SignUp: React.FC = () => {
             </div>
 
             <div className="group">
-              <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
-                Current Goal
-              </label>
-              <select className="w-full px-4 py-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-urban-sand/30 focus:border-urban-sand transition-all appearance-none cursor-pointer">
-                <option>Moving out from my parents' home</option>
-                <option>Relocating to a new neighborhood</option>
-                <option>Budgeting for future independence</option>
-              </select>
-            </div>
-
-            <div className="group">
-              <label className="block text-sm font-medium text-urban-charcoal mb-2 group-focus-within:text-urban-sand transition-colors">
-                Password
-              </label>
+              <div className="flex justify-between mb-2">
+                <label className="text-sm font-medium text-urban-charcoal group-focus-within:text-urban-sand transition-colors">
+                  Password
+                </label>
+                <button type="button" className="text-xs text-urban-sand font-bold hover:underline cursor-pointer">
+                  Forgot Password?
+                </button>
+              </div>
               <input 
                 type="password" 
                 placeholder="••••••••"
@@ -85,19 +67,30 @@ const SignUp: React.FC = () => {
               />
             </div>
 
+            <div className="flex items-center">
+              <input 
+                type="checkbox" 
+                id="remember" 
+                className="h-4 w-4 text-urban-sand border-gray-300 rounded focus:ring-urban-sand cursor-pointer" 
+              />
+              <label htmlFor="remember" className="ml-2 block text-sm text-urban-taupe font-medium cursor-pointer">
+                Remember me for 30 days
+              </label>
+            </div>
+
             <button 
               type="submit" 
               className="w-full bg-urban-sand hover:bg-urban-sand-dark text-white font-bold text-lg py-4 px-4 rounded-xl shadow-lg shadow-urban-sand/20 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer"
             >
-              Create Account
+              Sign In
             </button>
           </form>
 
           <div className="mt-10 text-center border-t border-gray-100 pt-8">
             <p className="text-urban-taupe font-medium">
-              Already using Urbanly? 
-              <Link to="/signin" className="ml-2 text-urban-sand font-bold hover:underline transition-all">
-                Sign In
+              New to Urbanly? 
+              <Link to="/signup" className="ml-2 text-urban-sand font-bold hover:underline transition-all">
+                Create Account
               </Link>
             </p>
           </div>
@@ -107,4 +100,4 @@ const SignUp: React.FC = () => {
   );
 };
 
-export default SignUp;
+export default SignIn;
