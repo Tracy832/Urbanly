@@ -1,203 +1,248 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Wallet, MapPin, Zap, CheckCircle2, RotateCcw } from 'lucide-react';
+import { User, Wallet, Sofa, ClipboardCheck, ArrowLeft, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
+
+// --- Types (Defined outside the component to fix Scope Errors) ---
+type Step = 1 | 2 | 3 | 4;
+
+interface InventoryItem {
+  name: string;
+  owned: boolean;
+  estCost: number;
+}
+
+interface UserData {
+  location: string;
+  workplace: string;
+  maritalStatus: string;
+  religion: string;
+  income: number;
+  savings: number;
+  rentBudget: number;
+  inventory: InventoryItem[];
+}
+
+const INITIAL_INVENTORY: InventoryItem[] = [
+  { name: "Bed & Mattress", owned: false, estCost: 18000 },
+  { name: "Gas Cooker/Cylinder", owned: false, estCost: 8500 },
+  { name: "Fridge", owned: false, estCost: 25000 },
+  { name: "TV", owned: false, estCost: 15000 },
+  { name: "Kitchen Starter Kit", owned: false, estCost: 5000 },
+];
 
 const Advisor: React.FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [data, setData] = useState({
-    income: 0,
+  const [step, setStep] = useState<Step>(1);
+  const [data, setData] = useState<UserData>({
+    location: '',
     workplace: '',
-    priority: '',
-    lifestyle: ''
+    maritalStatus: '',
+    religion: '',
+    income: 0,
+    savings: 0,
+    rentBudget: 0,
+    inventory: INITIAL_INVENTORY
   });
 
-  const nextStep = () => setStep(prev => prev + 1);
-  const prevStep = () => setStep(prev => prev - 1);
-    const getDecision = () => {
-    const budget = data.income * 0.3;
-    const stepBackgrounds = [
-    "/house-bg-1.jpeg", 
-    "/house-bg-2.jpeg", 
-    "/house-bg-3.jpeg", 
-    "/house-bg-4.jpeg"
+  // --- THE DYNAMIC BACKGROUND IMAGES ---
+  const stepBackgrounds = [
+    "/house1-bg.jpeg", 
+    "/new.jpeg", 
+    "/night.jpeg", 
+    "/nkeys.jpeg"
   ];
-    if (budget < 15000) {
-      return { 
-        area: "Roysambu / Kasarani", 
-        reason: "Based on your income, these areas offer the best value-to-security ratio, allowing you to maintain a healthy financial runway." 
-      };
-    }
-    if (data.priority === 'Security' || data.priority === 'Quiet') {
-      return { 
-        area: "Ruaka / South B", 
-        reason: "These locations feature controlled access and lower noise levels, matching your preference for a secure, serene environment." 
-      };
-    }
-    if (data.workplace === 'Westlands' || data.workplace === 'CBD') {
-      return { 
-        area: "Ngong Road / Kilimani", 
-        reason: "To minimize travel fatigue and transport costs, we recommend these hubs due to their proximity to your workplace." 
-      };
-    }
-    return { 
-      area: "Lang'ata", 
-      reason: "This is our 'Balanced Choice' for you, offering a mix of affordability, social amenities, and reliable transport." 
-    };
+
+  // --- Logic Helpers ---
+  const itemsToBuy = data.inventory.filter(item => !item.owned);
+  const totalSetupCost = itemsToBuy.reduce((sum, item) => sum + item.estCost, 0);
+  
+  const isStep1Complete = !!(data.location && data.workplace && data.maritalStatus);
+  const isStep2Complete = data.income > 0 && data.rentBudget > 0 && data.savings > 0;
+
+  const toggleInventory = (index: number) => {
+    const newInventory = [...data.inventory];
+    newInventory[index].owned = !newInventory[index].owned;
+    setData({ ...data, inventory: newInventory });
   };
 
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden p-6">
       
-      {/* THE DYNAMIC BACKGROUND LAYER */}
-{/* --- THE VIBRANT BACKGROUND LAYER --- */}
-<div className="fixed inset-0 -z-10">
-  <img 
-    src="house1-bg.jpeg"
-    alt="House Background" 
-    /* REMOVED: grayscale and brightness filters */
-    className="w-full h-full object-cover transition-all duration-1000" 
-  />
-  {/* A soft dark overlay to add depth and professional contrast */}
-  <div className="absolute inset-0 bg-black/20"></div>
-</div>
-      {/* 3. THE CONTENT LAYER */}
-      <div className="relative z-10 max-w-xl w-full">
+      {/* --- BACKGROUND LAYER --- */}
+      <div className="fixed inset-0 -z-10">
+        <img 
+          src={stepBackgrounds[step - 1] || stepBackgrounds[0]} 
+          alt="Atmosphere" 
+          className="w-full h-full object-cover transition-all duration-1000 ease-in-out" 
+        />
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+      </div>
+
+      <div className="relative z-10 max-w-2xl w-full">
         
         {/* Progress Bar */}
-        <div className="flex gap-3 mb-12">
+        <div className="flex gap-3 mb-8">
           {[1, 2, 3, 4].map(i => (
             <div 
               key={i} 
-              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= i ? 'bg-urban-sand' : 'bg-black/10'}`} 
+              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= i ? 'bg-urban-sand' : 'bg-white/20'}`} 
             />
           ))}
         </div>
 
-        {/* STEP WRAPPER: Card with soft glass effect */}
-        <div className="bg-white/70 backdrop-blur-lg rounded-[3rem] p-10 shadow-2xl border border-white/30 min-h-[550px] flex flex-col justify-between">
+        {/* MAIN CARD */}
+        <div className="bg-white/95 backdrop-blur-xl rounded-[3rem] p-10 shadow-2xl border border-white/40 min-h-[620px] flex flex-col justify-between">
           
-          {/* STEP 1: Income */}
-{step === 1 && (
-  /* This container handles the overall fade animation */
-  <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-    
-    {/* --- THE BACKGROUND LAYER for STEP 1 --- */}
-    <div className="absolute inset-0 z-0">
-      <img 
-        src="/house1-bg.jpeg"
-        className="w-full h-full object-cover grayscale opacity-15"
-        alt="budget-bg"
-      />
-      <div className="absolute inset-0 bg-linear-to-t from-white/95 via-white/80 to-white/60"></div>
-    </div>
+          <div className="flex-grow">
+            {/* STEP 1: Personal Profile */}
+            {step === 1 && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <header className="mb-8">
+                  <div className="bg-black/5 w-12 h-12 rounded-2xl flex items-center justify-center mb-4">
+                    <User className="text-urban-sand w-6 h-6" />
+                  </div>
+                  <h2 className="text-4xl font-black uppercase tracking-tighter italic text-black">Tell us about yourself.</h2>
+                  <p className="text-urban-taupe font-medium">Help us personalize your moving experience.</p>
+                </header>
 
-    {/* --- THE CONTENT LAYER (Sits on top of the image) --- */}
-    <div className="relative z-10 w-full max-w-2xl px-6">
-      <div className="bg-black/5 w-16 h-16 rounded-3xl flex items-center justify-center mb-8">
-        <Wallet className="text-urban-sand w-8 h-8" />
-      </div>
-      <h2 className="text-5xl font-black uppercase tracking-tighter mb-4 italic text-black leading-none">
-            The Budget.
-          </h2>
-          <p className="text-urban-taupe text-lg mb-10 font-medium">
-            What is your monthly net income? (KSh)
-          </p>
+                <div className="space-y-4 text-left">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-urban-sand">Current Location</label>
+                    <input type="text" placeholder="e.g. Eldoret" className="w-full p-4 bg-black/5 rounded-xl border-none font-bold outline-none" value={data.location} onChange={(e) => setData({...data, location: e.target.value})} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-urban-sand">Workplace</label>
+                    <input type="text" placeholder="e.g. CBD Nairobi" className="w-full p-4 bg-black/5 rounded-xl border-none font-bold outline-none" value={data.workplace} onChange={(e) => setData({...data, workplace: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-urban-sand">Marital Status</label>
+                    <div className="flex gap-2">
+                      {['Single', 'Married', 'Other'].map(s => (
+                        <button key={s} onClick={() => setData({...data, maritalStatus: s})} className={`flex-1 py-4 rounded-xl font-bold transition-all border ${data.maritalStatus === s ? 'bg-urban-sand text-white border-urban-sand' : 'bg-transparent text-urban-charcoal border-black/10 hover:bg-black/5'}`}>{s}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-urban-sand">Religion (Optional)</label>
+                    <input type="text" placeholder="e.g. Christian" className="w-full p-4 bg-black/5 rounded-xl border-none font-bold outline-none" value={data.religion} onChange={(e) => setData({...data, religion: e.target.value})} />
+                  </div>
+                </div>
+              </div>
+            )}
 
-          <input 
-            autoFocus
-            type="number" 
-            placeholder="0"
-            className="w-full text-7xl font-black border-b-4 border-black/5 focus:border-urban-sand outline-none pb-6 bg-transparent transition-all placeholder:text-black/10"
-            onChange={(e) => setData({...data, income: Number(e.target.value)})}
-          />
-        </div>
-        </div>
-      )}
-          {/* STEP 2: Location */}
-          {step === 2 && (
-           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="bg-urban-sand/10 w-16 h-16 rounded-3xl flex items-center justify-center mb-8">
-            <Wallet className="text-urban-sand w-8 h-8" />
-              </div>
-              <h2 className="text-5xl font-black uppercase tracking-tighter mb-4 italic">The Commute.</h2>
-              <p className="text-urban-taupe text-lg mb-10">Where do you spend most of your work week?</p>
-              <div className="grid grid-cols-1 gap-3">
-                {['CBD', 'Westlands', 'Upperhill', 'Remote/WFH'].map(loc => (
-                  <button 
-                    key={loc}
-                    onClick={() => { setData({...data, workplace: loc}); nextStep(); }}
-                    className="w-full p-6 text-left rounded-2xl border-2 border-white bg-white/40 hover:border-urban-sand hover:bg-white/80 font-bold transition-all shadow-sm"
-                  >
-                    {loc}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            {/* STEP 2: Financial Information */}
+            {step === 2 && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-700">
+                <header className="mb-8 text-left">
+                  <div className="bg-black/5 w-12 h-12 rounded-2xl flex items-center justify-center mb-4">
+                    <Wallet className="text-urban-sand w-6 h-6" />
+                  </div>
+                  <h2 className="text-4xl font-black uppercase tracking-tighter italic text-black">Financial Info.</h2>
+                  <p className="text-urban-taupe font-medium">Calculate your moving affordability.</p>
+                </header>
 
-          {/* STEP 3: Priorities */}
-          {step === 3 && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="bg-black/5 w-16 h-16 rounded-3xl flex items-center justify-center mb-8">
-                <Zap className="text-urban-sand w-8 h-8" />
+                <div className="space-y-5 text-left">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-urban-sand">Monthly Net Income (After Tax)</label>
+                    <input type="number" placeholder="KSh 0" className="w-full p-5 bg-black/5 rounded-2xl border-none font-bold text-2xl outline-none" onChange={(e) => setData({...data, income: Number(e.target.value)})} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-urban-sand">Current Savings</label>
+                    <input type="number" placeholder="KSh 0" className="w-full p-5 bg-black/5 rounded-2xl border-none font-bold text-2xl outline-none" onChange={(e) => setData({...data, savings: Number(e.target.value)})} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-urban-sand">Maximum Rent Budget</label>
+                    <input type="number" placeholder="KSh 0" className="w-full p-5 bg-black/5 rounded-2xl border-none font-bold text-2xl outline-none" onChange={(e) => setData({...data, rentBudget: Number(e.target.value)})} />
+                  </div>
+                </div>
               </div>
-              <h2 className="text-5xl font-black uppercase tracking-tighter mb-4 italic">The Vibe.</h2>
-              <p className="text-urban-taupe text-lg mb-10">What is your absolute non-negotiable?</p>
-              <div className="grid grid-cols-1 gap-3">
-                {['Security', 'Low Rent', 'Quiet Environment', 'Social Life'].map(p => (
-                  <button 
-                    key={p}
-                    onClick={() => { setData({...data, priority: p}); nextStep(); }}
-                    className="w-full p-6 text-left rounded-2xl border-2 border-white bg-white/40 hover:border-urban-sand hover:bg-white/80 font-bold transition-all shadow-sm"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* STEP 4: Conclusion */}
-          {step === 4 && (
-            <div className="text-center animate-in zoom-in-95 duration-1000">
-              <div className="flex justify-center mb-8">
-                <CheckCircle2 className="w-20 h-20 text-urban-sand" />
-              </div>
-              <h2 className="text-xs font-black uppercase tracking-[0.4em] text-urban-taupe mb-4">Urbanly Recommendation</h2>
-              <h3 className="text-6xl font-black uppercase tracking-tighter mb-6">{getDecision().area}</h3>
-              <div className="bg-white/60 backdrop-blur-md p-8 rounded-[2.5rem] border border-white mb-10 shadow-lg">
-                <p className="text-urban-charcoal leading-relaxed font-medium italic">
-                  "{getDecision().reason}"
-                </p>
-              </div>
-              <div className="flex flex-col gap-4">
-                <button 
-                  onClick={() => navigate('/signup')}
-                  className="w-full bg-black text-white py-6 rounded-2xl font-bold uppercase tracking-widest hover:bg-urban-sand transition-all shadow-lg"
-                >
-                  Save Plan
-                </button>
-                <button onClick={() => setStep(1)} className="flex items-center justify-center gap-2 text-urban-taupe font-bold text-xs uppercase tracking-widest">
-                  <RotateCcw className="w-4 h-4" /> Start Over
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+            {/* STEP 3: Items Inventory */}
+            {step === 3 && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-700">
+                <header className="mb-6 text-left">
+                  <div className="bg-black/5 w-12 h-12 rounded-2xl flex items-center justify-center mb-4">
+                    <Sofa className="text-urban-sand w-6 h-6" />
+                  </div>
+                  <h2 className="text-4xl font-black uppercase tracking-tighter italic text-black">Furniture & Items.</h2>
+                  <p className="text-urban-taupe font-medium">Select items you already own.</p>
+                </header>
 
-        {/* 3. NAVIGATION BUTTONS */}
-        <div className="mt-12 flex justify-between items-center">
-          {step > 1 && step < 4 && (
-            <button onClick={prevStep} className="text-urban-taupe font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-2">
-              <ArrowLeft className="w-3 h-3" /> Back
-            </button>
-          )}
-          {step === 1 && data.income > 0 && (
-            <button onClick={nextStep} className="ml-auto bg-black text-white px-10 py-4 rounded-xl font-bold flex items-center gap-3 shadow-md">
-              Next <ArrowRight className="w-5 h-5" />
-            </button>
-          )}
+                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                  {data.inventory.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-black/5 rounded-2xl border border-black/5">
+                      <span className="font-bold text-sm text-black">{item.name}</span>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => toggleInventory(idx)}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${item.owned ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+                        >
+                          I Have It
+                        </button>
+                        <button 
+                          onClick={() => toggleInventory(idx)}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${!item.owned ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+                        >
+                          Need
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: Summary (Almost There) */}
+            {step === 4 && (
+              <div className="animate-in zoom-in-95 duration-1000 text-center">
+                <ClipboardCheck className="w-16 h-16 text-urban-sand mx-auto mb-6" />
+                <h2 className="text-5xl font-black uppercase tracking-tighter mb-2 leading-none italic text-black">Almost there!</h2>
+                <p className="text-urban-taupe font-medium mb-8">Review your information for your personalized analysis.</p>
+                
+                <div className="bg-black/5 rounded-[2.5rem] p-8 text-left space-y-4 mb-8 border border-black/5">
+                  <div className="grid grid-cols-2 gap-6 text-sm font-medium">
+                    <div><p className="text-[10px] font-black uppercase text-urban-sand mb-1">Status</p><p className="text-xl font-bold text-black">{data.maritalStatus}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-urban-sand mb-1">Rent Budget</p><p className="text-xl font-bold text-black">KSh {data.rentBudget.toLocaleString()}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-urban-sand mb-1">Items Needed</p><p className="text-xl font-bold text-red-500">{itemsToBuy.length}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-urban-sand mb-1">Est. Setup Cost</p><p className="text-xl font-bold text-urban-sand">KSh {totalSetupCost.toLocaleString()}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-urban-sand/10 p-5 rounded-2xl border border-urban-sand/10">
+                  <p className="text-sm font-bold text-urban-charcoal">
+                    Click <span className="text-urban-sand">Get Started</span> to see your moving analysis.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* NAVIGATION BUTTONS */}
+          <footer className="mt-10 flex gap-4">
+            {step > 1 && (
+              <button 
+                onClick={() => setStep(s => (s > 1 ? (s - 1) : 1) as Step)} 
+                className="flex-1 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] border border-black/10 hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2 text-black"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+            )}
+            {step < 4 ? (
+              <button 
+                disabled={step === 1 ? !isStep1Complete : step === 2 ? !isStep2Complete : false}
+                onClick={() => setStep(s => (s < 4 ? (s + 1) : 4) as Step)}
+                className="flex-[2] bg-urban-sand text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-urban-sand/20 disabled:opacity-20 flex items-center justify-center gap-2"
+              >
+                Continue <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button onClick={() => navigate('/dashboard')} className="flex-[2] bg-black text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl flex items-center justify-center gap-2">
+                Get Started <CheckCircle2 className="w-4 h-4" />
+              </button>
+            )}
+          </footer>
+
         </div>
       </div>
     </main>
