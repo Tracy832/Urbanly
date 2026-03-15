@@ -1,20 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  /* --- REFINED CUSTOM COLORS --- */
-  --color-urban-sand: #D4B996;
-  --color-urban-charcoal: #1A1A1A;
-  --color-urban-taupe: #8C857B;
-  --color-urban-beige: #F5F5F0;
+  /* --- PREMIUM COMPATTO-INSPIRED PALETTE --- */
+  --color-urban-cream: #F9F7F2;      /* The main background (Alabaster) */
+  --color-urban-sand: #D4B996;       /* The accent (Gold/Sand) */
+  --color-urban-charcoal: #2D2926;   /* The text and deep accents (Espresso) */
+  --color-urban-taupe: #B2A698;      /* Secondary text/muted elements */
+  --color-urban-border: #E5E1D8;     /* Subtle divider lines */
+  --color-urban-surface: #FFFFFF;    /* Pure white for card interiors */
 
-  /* --- ANIMATION TOKENS --- */
+  /* --- ANIMATIONS --- */
   --animate-fade-in: fade-in 0.6s ease-out;
   --animate-slide-up: slide-up 0.5s ease-out;
   --animate-zoom-in: zoom-in 0.4s ease-out;
 }
 
-/* --- CUSTOM UTILITIES & KEYFRAMES --- */
 @layer base {
+  /* Applying the theme background globally */
+  body {
+    background-color: var(--color-urban-cream);
+    color: var(--color-urban-charcoal);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
   @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -30,28 +38,23 @@
     to { transform: scale(1); opacity: 1; }
   }
 
-  /* Custom Scrollbar for the Inventory Step */
+  /* Custom Scrollbar to match the Sand/Cream theme */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 5px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--color-urban-cream);
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #D4B996;
+    background: var(--color-urban-sand);
     border-radius: 10px;
   }
 
-  /* Glassmorphism utility if backdrop-blur isn't enough */
-  .glass-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Premium Card Style from the image */
+  .premium-card {
+    background: var(--color-urban-surface);
+    border: 1px solid var(--color-urban-border);
+    border-radius: 2.5rem;
+    box-shadow: 0 4px 20px -5px rgba(45, 41, 38, 0.05);
   }
-}
-
-/* Ensure images in the background layer transition smoothly */
-img {
-  transition: filter 1s ease-in-out, transform 1s ease-in-out;
 }
