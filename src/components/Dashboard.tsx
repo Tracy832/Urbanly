@@ -8,9 +8,7 @@ import {
   Calculator, 
   ShoppingBag, 
   MessageCircle, 
-  ArrowRight,
-  Clock,
-  Zap
+  ArrowRight
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {

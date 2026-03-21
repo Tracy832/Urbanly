@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, ShoppingCart, Tag, MapPin, ChevronDown, 
-  ChevronUp, CheckCircle2, Lightbulb, Wallet, Package 
+  ArrowLeft, MapPin, ChevronDown, 
+  ChevronUp, CheckCircle2, Lightbulb, Package 
 } from 'lucide-react';
 
 // --- Data Structure for Vendors ---
@@ -118,7 +118,7 @@ const ShoppingList: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* VENDOR COMPARISON DRAWER (Figma Reference) */}
+                    {/* VENDOR COMPARISON DRAWER  */}
                     {expandedId === item.id && (
                       <div className="bg-urban-sand/5 border-t border-urban-border p-6 space-y-3 animate-in slide-in-from-top-2">
                         {item.vendors.map(vendor => (

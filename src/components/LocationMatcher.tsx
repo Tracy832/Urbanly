@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, MapPin, ShieldCheck, Bus, Wifi, Church, Moon, 
+  ArrowLeft, MapPin, ShieldCheck, Bus,
   TrendingUp, ChevronRight, X, CheckCircle2, Info
 } from 'lucide-react';
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Calculator, Home, Sofa, Utensils, Zap, 
-  TrendingUp, TrendingDown, Target, Info, Sparkles, Bus 
+   Target, Sparkles, Bus 
 } from 'lucide-react';
 
 // --- DATA SCENARIOS (Decision Support Logic) ---
