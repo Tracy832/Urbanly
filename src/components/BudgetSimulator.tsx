@@ -1,197 +1,142 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, Calculator, Home, Sofa, Utensils, Zap, 
-   Target, Sparkles, Bus 
-} from 'lucide-react';
+import { ArrowLeft, Target, Sofa, Calculator, Home, CheckCircle } from 'lucide-react';
 
-// --- DATA SCENARIOS (Decision Support Logic) ---
-const INCOME = 100000;
-const SAVINGS = 120000;
-const TRANSPORT = 4400; 
-const UTILITIES = 5000;  
+// --- LOCAL DATA SET & CALCULATOR ---
+const INTERNAL_FURNITURE_PRICES: Record<string, number> = {
+  'Television': 28000,
+  'Refrigerator': 32000,
+  'Microwave': 9500,
+  'Sofa Set': 45000,
+  'Bed Frame': 15000,
+  'Gas Cooker': 12000
+};
 
-const BudgetSimulator: React.FC = () => {
+interface SimulatorProps {
+  selectedInventory: string[];
+}
+
+const BudgetSimulator: React.FC<SimulatorProps> = ({ selectedInventory }) => {
   const navigate = useNavigate();
 
-  // 1. User Inputs (The Decision Variables)
+  // 1. DYNAMIC CALCULATION: Sum prices for selected items
+  const furnitureSetupTotal = selectedInventory.reduce((sum, itemName) => {
+    return sum + (INTERNAL_FURNITURE_PRICES[itemName] || 0);
+  }, 0);
+
+  // 2. INPUT STATE
+  const [income] = useState(100000); 
+  const [savings] = useState(120000); 
   const [rent, setRent] = useState(20000);
-  const [furnitureQuality, setFurnitureQuality] = useState(79500); 
-  const [dailyFood, setDailyFood] = useState(500); 
+  const [dailyFoodBudget, setDailyFoodBudget] = useState(500);
 
-  // 2. Calculations (The Model Logic)
-  const monthlyFood = dailyFood * 30;
-  const setupCost = rent + furnitureQuality; 
-  const remainingSavings = SAVINGS - setupCost;
-  const financialRunway = setupCost > SAVINGS ? 0 : Math.floor(SAVINGS / setupCost);
+  // 3. CALCULATION LOGIC
+  const monthlyFood = dailyFoodBudget * 30;
+  const UTILITIES = 5000;
+  const TRANSPORT = 4400;
 
-  const totalMonthlySpend = rent + TRANSPORT + monthlyFood + UTILITIES;
-  const disposableIncome = INCOME - totalMonthlySpend;
-  
-  // FIX: Convert calculation to a Number so comparisons work correctly
-  const savingsRate = Number(((disposableIncome / INCOME) * 100).toFixed(1));
+  const moveInCosts = rent + furnitureSetupTotal; 
+  const remainSavings = savings - moveInCosts;
+  const totalMonthlySpend = rent + monthlyFood + UTILITIES + TRANSPORT;
+  const disposableIncome = income - totalMonthlySpend;
+  const savingsRate = Number(((disposableIncome / income) * 100).toFixed(1));
 
-  // 3. DSS Output Formatting (Risk Assessment)
-  const getRiskScore = () => {
-    if (rent > INCOME * 0.3 || setupCost > SAVINGS) return { score: 40, color: 'text-red-600', label: 'High Risk' };
-    if (rent > INCOME * 0.25 || remainingSavings < 20000) return { score: 65, color: 'text-orange-500', label: 'Caution' };
-    return { score: 90, color: 'text-green-600', label: 'Safe Move' };
-  };
-
-  const risk = getRiskScore();
+  const riskColor = savingsRate < 0 ? "border-red-600" : savingsRate < 10 ? "border-orange-500" : "border-urban-sand";
+  const riskText = savingsRate < 0 ? "Dangerous" : savingsRate < 10 ? "Cautious" : "Safe Move";
 
   return (
-    <div className="min-h-screen bg-urban-cream p-6 md:p-12 font-sans text-urban-charcoal relative">
+    <div className="min-h-screen bg-urban-cream p-6 md:p-12 font-sans text-urban-charcoal relative text-left">
       <div className="max-w-7xl mx-auto">
         
-        {/* HEADER */}
-        <header className="mb-10 flex items-center gap-4 text-left">
+        <header className="mb-10 flex items-center gap-4">
           <button onClick={() => navigate('/dashboard')} className="hover:text-urban-sand transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tighter italic">Budget Simulator</h1>
+            <h1 className="text-3xl font-black uppercase tracking-tighter italic text-black">Budget Simulator</h1>
             <p className="text-urban-taupe font-medium text-sm">Adjust parameters to see real-time budget impact</p>
           </div>
         </header>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
           
-          {/* --- LEFT COLUMN: INPUT SLIDERS --- */}
-          <div className="xl:col-span-8 space-y-8 text-left">
+          <div className="xl:col-span-8 space-y-8">
             <h2 className="text-lg font-black uppercase tracking-widest text-urban-taupe mb-2 flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-urban-sand" /> Simulation Controls
             </h2>
 
-            {/* Rent Slider */}
-            <div className="premium-card p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            {/* Monthly Rent */}
+            <div className="premium-card p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white shadow-xl">
               <div className="space-y-1 w-full md:w-2/3">
-                <div className="flex items-center gap-2"><Home className="w-5 h-5 text-urban-sand" /><label className="font-black">Monthly Rent</label></div>
-                <p className="text-sm text-urban-taupe">Adjust to see affordability</p>
-                <input 
-                  type="range" min="5000" max="60000" step="1000" value={rent} 
-                  onChange={(e) => setRent(Number(e.target.value))}
-                  className="w-full h-2 bg-urban-border rounded-lg appearance-none cursor-pointer accent-urban-sand"
-                />
+                <div className="flex items-center gap-2"><Home className="w-5 h-5 text-urban-sand"/><label className="font-black text-black">Monthly Rent</label></div>
+                <input type="range" min="5000" max="60000" step="1000" value={rent} onChange={(e) => setRent(Number(e.target.value))} className="w-full h-2 bg-urban-border rounded-lg appearance-none cursor-pointer accent-urban-sand" />
               </div>
               <div className="text-left md:text-right">
-                 <p className="text-4xl font-black">KSh {rent.toLocaleString()}</p>
-                 <p className="text-xs font-bold text-urban-taupe">Recommended: KSh 20,000</p>
+                 <p className="text-3xl font-black text-black">KSh {rent.toLocaleString()}</p>
               </div>
             </div>
 
-            {/* Furniture Slider */}
-            <div className="premium-card p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div className="space-y-1 w-full md:w-2/3">
-                <div className="flex items-center gap-2"><Sofa className="w-5 h-5 text-urban-sand" /><label className="font-black">Furniture Quality</label></div>
-                <p className="text-sm text-urban-taupe">From basic to premium furnishings</p>
-                <input 
-                  type="range" min="39000" max="120000" step="500" value={furnitureQuality} 
-                  onChange={(e) => setFurnitureQuality(Number(e.target.value))}
-                  className="w-full h-2 bg-urban-border rounded-lg appearance-none cursor-pointer accent-urban-sand"
-                />
-              </div>
-              <div className="text-left md:text-right">
-                 <p className="text-4xl font-black">KSh {furnitureQuality.toLocaleString()}</p>
-              </div>
-            </div>
-
-            {/* Food Slider */}
-            <div className="premium-card p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div className="space-y-1 w-full md:w-2/3">
-                <div className="flex items-center gap-2"><Utensils className="w-5 h-5 text-urban-sand" /><label className="font-black">Daily Food Budget</label></div>
-                <p className="text-sm text-urban-taupe">Monthly food expenses</p>
-                <input 
-                  type="range" min="200" max="3000" step="50" value={dailyFood} 
-                  onChange={(e) => setDailyFood(Number(e.target.value))}
-                  className="w-full h-2 bg-urban-border rounded-lg appearance-none cursor-pointer accent-urban-sand"
-                />
-              </div>
-              <div className="text-left md:text-right">
-                 <p className="text-4xl font-black">KSh {monthlyFood.toLocaleString()}</p>
-                 <p className="text-xs font-bold text-urban-taupe">~KSh {dailyFood} per day</p>
-              </div>
+            {/* NEW SECTION: Inventory Breakdown */}
+            <div className="premium-card p-8 bg-white shadow-xl space-y-6">
+               <h3 className="font-black uppercase text-xs text-urban-sand flex items-center gap-2">
+                 <Sofa className="w-4 h-4" /> Selected Inventory Breakdown
+               </h3>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                 {selectedInventory.length > 0 ? selectedInventory.map(item => (
+                   <div key={item} className="flex justify-between items-center p-4 bg-black/5 rounded-2xl border border-black/5">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-urban-sand" />
+                        <span className="font-bold text-sm text-black">{item}</span>
+                      </div>
+                      <span className="font-black text-sm text-urban-taupe">KSh {INTERNAL_FURNITURE_PRICES[item]?.toLocaleString()}</span>
+                   </div>
+                 )) : (
+                   <p className="text-urban-taupe text-sm italic">No items selected in Advisor.</p>
+                 )}
+               </div>
             </div>
           </div>
 
-          {/* --- RIGHT COLUMN: ANALYSIS & METRICS --- */}
-          <div className="xl:col-span-4 space-y-10 text-left">
-            <h2 className="text-lg font-black uppercase tracking-widest text-urban-taupe mb-2 flex items-center gap-2">
-                <Target className="w-5 h-5 text-urban-sand" /> Impact Analysis
-            </h2>
-
-            {/* Risk Assessment */}
-            <div className="premium-card p-8 text-center space-y-4">
-                <p className="text-sm font-black uppercase tracking-widest text-urban-taupe">Live Risk Assessment</p>
-                <div className={`text-6xl font-black ${risk.color}`}>{risk.score}</div>
-                <p className="text-xl font-bold">{risk.label}</p>
-                <div className="w-full bg-urban-border h-3 rounded-full relative overflow-hidden">
-                    <div className={`absolute inset-y-0 left-0 rounded-full transition-all ${risk.color === 'text-red-600' ? 'bg-red-600' : risk.color === 'text-orange-500' ? 'bg-orange-500' : 'bg-green-600'}`} style={{width: `${risk.score}%`}} />
+          <div className="xl:col-span-4 space-y-10">
+            <div className="premium-card p-10 text-center space-y-4 bg-white shadow-xl">
+                <p className="text-xs font-black uppercase tracking-widest text-urban-taupe">Risk Assessment</p>
+                <div className={`w-32 h-32 rounded-full border-[10px] ${riskColor} mx-auto flex items-center justify-center`}>
+                    <p className="text-4xl font-black text-black">{savingsRate > 0 ? savingsRate : 0}%</p>
                 </div>
+                <p className="text-xl font-bold text-black">{riskText}</p>
             </div>
 
-            {/* Financial Metrics */}
-            <div className="premium-card p-8 space-y-6">
-                <p className="text-sm font-black uppercase tracking-widest text-urban-taupe">Financial Metrics</p>
-                <div>
-                   <label className="text-xs font-black uppercase text-urban-taupe">Setup Cost</label>
-                   <p className="text-2xl font-bold">KSh {setupCost.toLocaleString()}</p>
+            <div className="premium-card p-10 space-y-6 text-left bg-urban-charcoal text-white">
+                <p className="text-xs font-black uppercase tracking-widest text-urban-taupe/70">Calculated Move-In Cost</p>
+                <div className="bg-urban-sand/10 p-4 border border-urban-sand rounded-xl flex items-center justify-between">
+                    <p className="font-black">Inventory Total</p>
+                    <p className="text-2xl font-black text-urban-sand">KSh {furnitureSetupTotal.toLocaleString()}</p>
                 </div>
                 <div>
-                   <label className="text-xs font-black uppercase text-urban-taupe">Remaining Savings</label>
-                   <p className={`text-2xl font-bold ${remainingSavings < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      KSh {remainingSavings.toLocaleString()}
-                   </p>
+                   <label className="text-xs font-black uppercase text-urban-taupe">Total Setup Cost</label>
+                   <p className="text-3xl font-black">KSh {moveInCosts.toLocaleString()}</p>
                 </div>
-                <div>
-                   <label className="text-xs font-black uppercase text-urban-taupe">Financial Runway</label>
-                   <p className="text-4xl font-black italic">{financialRunway} months</p>
-                </div>
-            </div>
-
-            {/* Quick Tips Logic Fixed */}
-            <div className="bg-urban-sand text-white p-8 rounded-[2rem] space-y-4">
-                <Sparkles className="w-8 h-8"/>
-                <p className="font-bold text-sm">Quick Tip</p>
-                <p className="text-xl font-medium leading-relaxed">
-                   {savingsRate > 20 
-                    ? `You're in a great position, saving ${savingsRate}% of your income.`
-                    : savingsRate > 5
-                    ? `You're saving ${savingsRate}% of your income. It's safe but watch out.`
-                    : `Danger zone. Your savings rate is low (${savingsRate}%) and your runway is limited.`}
-                </p>
             </div>
           </div>
         </div>
 
-        {/* MONTHLY BREAKDOWN BAR CHART */}
-        <section className="premium-card p-10 mt-12 text-left">
-            <h3 className="text-sm font-black uppercase tracking-widest text-urban-taupe mb-8">Monthly Expense Breakdown (KSh {totalMonthlySpend.toLocaleString()})</h3>
+        <section className="premium-card p-12 mt-12 bg-white shadow-xl">
+            <h3 className="text-sm font-black uppercase tracking-widest text-urban-taupe mb-8">Monthly Breakdown</h3>
             <div className="space-y-6">
-              {[
-                { label: "Rent", value: rent, icon: Home },
-                { label: "Food", value: monthlyFood, icon: Utensils },
-                { label: "Transport", value: TRANSPORT, icon: Bus },
-                { label: "Utilities", value: UTILITIES, icon: Zap },
-              ].map(item => {
-                const percentage = ((item.value / INCOME) * 100).toFixed(1);
+              {[ { label: "Rent", value: rent }, { label: "Food", value: monthlyFood }, { label: "Transport", value: TRANSPORT }, { label: "Utilities", value: UTILITIES } ].map(item => {
+                const percentage = ((item.value / income) * 100).toFixed(1);
                 return (
-                  <div key={item.label} className="flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="flex items-center gap-2 w-40 font-bold">
-                       <item.icon className="w-4 h-4 text-urban-sand"/> {item.label}
-                    </div>
+                  <div key={item.label} className="flex items-center gap-4">
+                    <div className="w-24 text-left font-bold text-black">{item.label}</div>
                     <div className="flex-1 bg-urban-border h-3 rounded-full overflow-hidden relative">
-                      <div className="absolute inset-y-0 left-0 bg-urban-charcoal rounded-full" style={{width: `${percentage}%`}} />
+                      <div className="absolute inset-y-0 left-0 bg-urban-sand rounded-full" style={{width: `${percentage}%`}} />
                     </div>
-                    <div className="w-40 text-right font-black text-urban-taupe text-sm">
-                      {percentage}% | KSh {item.value.toLocaleString()}
-                    </div>
+                    <div className="w-40 text-right font-black text-urban-taupe text-sm">{percentage}% | KSh {item.value.toLocaleString()}</div>
                   </div>
                 );
               })}
             </div>
         </section>
-
       </div>
     </div>
   );
