@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Target, Sofa, Calculator, Home, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Target, Sofa, Calculator, Home, CheckCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
 
-// --- LOCAL DATA SET & CALCULATOR ---
+// --- Kenyan Market Constants ---
 const INTERNAL_FURNITURE_PRICES: Record<string, number> = {
   'Television': 28000,
   'Refrigerator': 32000,
@@ -12,37 +12,80 @@ const INTERNAL_FURNITURE_PRICES: Record<string, number> = {
   'Gas Cooker': 12000
 };
 
+const FIXED_UTILITIES = 5000;
+const FIXED_TRANSPORT = 4400;
+
 interface SimulatorProps {
   selectedInventory: string[];
+  // Assuming these are passed from parent state or localStorage
+  userIncome?: number;
+  userSavings?: number;
+  userTargetRent?: number;
 }
 
-const BudgetSimulator: React.FC<SimulatorProps> = ({ selectedInventory }) => {
+const BudgetSimulator: React.FC<SimulatorProps> = ({ 
+  selectedInventory, 
+  userIncome = 65000, 
+  userSavings = 100000, 
+  userTargetRent = 20000 
+}) => {
   const navigate = useNavigate();
 
-  // 1. DYNAMIC CALCULATION: Sum prices for selected items
-  const furnitureSetupTotal = selectedInventory.reduce((sum, itemName) => {
+  // 1. DYNAMIC INPUTS (Sliders initialized with Advisor data)
+  const [rent, setRent] = useState(userTargetRent);
+  const [dailyFoodBudget, setDailyFoodBudget] = useState(500);
+
+  // 2. CORE CALCULATIONS (The Decision Logic)
+  const furnitureTotal = selectedInventory.reduce((sum, itemName) => {
     return sum + (INTERNAL_FURNITURE_PRICES[itemName] || 0);
   }, 0);
 
-  // 2. INPUT STATE
-  const [income] = useState(100000); 
-  const [savings] = useState(120000); 
-  const [rent, setRent] = useState(20000);
-  const [dailyFoodBudget, setDailyFoodBudget] = useState(500);
-
-  // 3. CALCULATION LOGIC
+  // Upfront cost logic: 1 month rent + 2 months deposit + Furniture + Utilities/Agent reserves (approx 5k)
+  const moveInUpfrontRequired = (rent * 3) + furnitureTotal + 5000;
+  
   const monthlyFood = dailyFoodBudget * 30;
-  const UTILITIES = 5000;
-  const TRANSPORT = 4400;
+  const totalMonthlySpend = rent + monthlyFood + FIXED_UTILITIES + FIXED_TRANSPORT;
+  const disposableIncome = userIncome - totalMonthlySpend;
+  
+  // Financial Runway: How many months can user survive on savings after moving in?
+  const remainingSavings = userSavings - moveInUpfrontRequired;
+  const runwayMonths = remainingSavings > 0 ? (remainingSavings / totalMonthlySpend).toFixed(1) : "0";
 
-  const moveInCosts = rent + furnitureSetupTotal; 
-  const remainSavings = savings - moveInCosts;
-  const totalMonthlySpend = rent + monthlyFood + UTILITIES + TRANSPORT;
-  const disposableIncome = income - totalMonthlySpend;
-  const savingsRate = Number(((disposableIncome / income) * 100).toFixed(1));
+  // 3. DSS RISK ENGINE
+  const getRiskData = () => {
+    const rentRatio = (rent / userIncome) * 100;
+    
+    if (remainingSavings < 0 || rentRatio > 45) {
+      return { 
+        level: "High Risk", 
+        color: "text-red-600", 
+        border: "border-red-600",
+        bg: "bg-red-50",
+        icon: <AlertTriangle className="w-6 h-6" />,
+        advice: "DANGER: Your upfront costs exceed your savings, or rent is taking up too much of your income. You need to save more."
+      };
+    }
+    if (Number(runwayMonths) < 3 || rentRatio > 30) {
+      return { 
+        level: "Cautious", 
+        color: "text-orange-500", 
+        border: "border-orange-500",
+        bg: "bg-orange-50",
+        icon: <AlertTriangle className="w-6 h-6" />,
+        advice: "WARNING: You can afford to move, but your safety net is thin. Avoid luxury spending for the first 3 months."
+      };
+    }
+    return { 
+      level: "Safe Move", 
+      color: "text-green-600", 
+      border: "border-green-600",
+      bg: "bg-green-50",
+      icon: <ShieldCheck className="w-6 h-6" />,
+      advice: "EXCELLENT: You have a healthy emergency fund and your rent-to-income ratio is optimal."
+    };
+  };
 
-  const riskColor = savingsRate < 0 ? "border-red-600" : savingsRate < 10 ? "border-orange-500" : "border-urban-sand";
-  const riskText = savingsRate < 0 ? "Dangerous" : savingsRate < 10 ? "Cautious" : "Safe Move";
+  const risk = getRiskData();
 
   return (
     <div className="min-h-screen bg-urban-cream p-6 md:p-12 font-sans text-urban-charcoal relative text-left">
@@ -53,33 +96,32 @@ const BudgetSimulator: React.FC<SimulatorProps> = ({ selectedInventory }) => {
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tighter italic text-black">Budget Simulator</h1>
-            <p className="text-urban-taupe font-medium text-sm">Adjust parameters to see real-time budget impact</p>
+            <h1 className="text-3xl font-black uppercase tracking-tighter italic text-black leading-none">Budget Simulator</h1>
+            <p className="text-urban-taupe font-medium text-sm mt-1">Live analysis based on your KSh {userIncome.toLocaleString()} income</p>
           </div>
         </header>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
           
+          {/* LEFT: CONTROLS */}
           <div className="xl:col-span-8 space-y-8">
             <h2 className="text-lg font-black uppercase tracking-widest text-urban-taupe mb-2 flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-urban-sand" /> Simulation Controls
+                <Calculator className="w-5 h-5 text-urban-sand" /> Decision Controls
             </h2>
 
-            {/* Monthly Rent */}
-            <div className="premium-card p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white shadow-xl">
-              <div className="space-y-1 w-full md:w-2/3">
-                <div className="flex items-center gap-2"><Home className="w-5 h-5 text-urban-sand"/><label className="font-black text-black">Monthly Rent</label></div>
-                <input type="range" min="5000" max="60000" step="1000" value={rent} onChange={(e) => setRent(Number(e.target.value))} className="w-full h-2 bg-urban-border rounded-lg appearance-none cursor-pointer accent-urban-sand" />
+            {/* Rent Slider */}
+            <div className="premium-card p-8 bg-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="w-full md:w-2/3 space-y-2">
+                <div className="flex items-center gap-2 font-black"><Home className="w-5 h-5 text-urban-sand"/> Target Rent</div>
+                <input type="range" min="5000" max="80000" step="1000" value={rent} onChange={(e) => setRent(Number(e.target.value))} className="w-full h-2 bg-urban-border rounded-lg appearance-none cursor-pointer accent-urban-sand" />
               </div>
-              <div className="text-left md:text-right">
-                 <p className="text-3xl font-black text-black">KSh {rent.toLocaleString()}</p>
-              </div>
+              <p className="text-3xl font-black text-black">KSh {rent.toLocaleString()}</p>
             </div>
 
-            {/* NEW SECTION: Inventory Breakdown */}
+            {/* Inventory Breakdown */}
             <div className="premium-card p-8 bg-white shadow-xl space-y-6">
                <h3 className="font-black uppercase text-xs text-urban-sand flex items-center gap-2">
-                 <Sofa className="w-4 h-4" /> Selected Inventory Breakdown
+                 <Sofa className="w-4 h-4" /> Selected Inventory Details
                </h3>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                  {selectedInventory.length > 0 ? selectedInventory.map(item => (
@@ -91,50 +133,70 @@ const BudgetSimulator: React.FC<SimulatorProps> = ({ selectedInventory }) => {
                       <span className="font-black text-sm text-urban-taupe">KSh {INTERNAL_FURNITURE_PRICES[item]?.toLocaleString()}</span>
                    </div>
                  )) : (
-                   <p className="text-urban-taupe text-sm italic">No items selected in Advisor.</p>
+                   <p className="text-urban-taupe text-sm italic">No items selected.</p>
                  )}
                </div>
             </div>
           </div>
 
-          <div className="xl:col-span-4 space-y-10">
-            <div className="premium-card p-10 text-center space-y-4 bg-white shadow-xl">
-                <p className="text-xs font-black uppercase tracking-widest text-urban-taupe">Risk Assessment</p>
-                <div className={`w-32 h-32 rounded-full border-[10px] ${riskColor} mx-auto flex items-center justify-center`}>
-                    <p className="text-4xl font-black text-black">{savingsRate > 0 ? savingsRate : 0}%</p>
+          {/* RIGHT: RISK & TOTALS */}
+          <div className="xl:col-span-4 space-y-6">
+            <h2 className="text-lg font-black uppercase tracking-widest text-urban-taupe flex items-center gap-2">
+                <Target className="w-5 h-5 text-urban-sand" /> Analysis
+            </h2>
+
+            {/* Visual Decision Card */}
+            <div className={`premium-card p-8 border-t-8 ${risk.border} ${risk.bg} shadow-xl text-center space-y-4`}>
+                <div className={`${risk.color} flex justify-center`}>{risk.icon}</div>
+                <h3 className={`text-3xl font-black uppercase italic ${risk.color}`}>{risk.level}</h3>
+                <p className="text-sm font-bold text-urban-charcoal leading-relaxed">{risk.advice}</p>
+                <div className="pt-4 border-t border-black/5">
+                   <p className="text-[10px] font-black uppercase text-urban-taupe">Est. Post-Move Runway</p>
+                   <p className="text-2xl font-black">{runwayMonths} Months</p>
                 </div>
-                <p className="text-xl font-bold text-black">{riskText}</p>
             </div>
 
-            <div className="premium-card p-10 space-y-6 text-left bg-urban-charcoal text-white">
-                <p className="text-xs font-black uppercase tracking-widest text-urban-taupe/70">Calculated Move-In Cost</p>
-                <div className="bg-urban-sand/10 p-4 border border-urban-sand rounded-xl flex items-center justify-between">
-                    <p className="font-black">Inventory Total</p>
-                    <p className="text-2xl font-black text-urban-sand">KSh {furnitureSetupTotal.toLocaleString()}</p>
-                </div>
+            {/* Move-In Total Card */}
+            <div className="premium-card p-8 bg-urban-charcoal text-white shadow-xl space-y-6">
                 <div>
-                   <label className="text-xs font-black uppercase text-urban-taupe">Total Setup Cost</label>
-                   <p className="text-3xl font-black">KSh {moveInCosts.toLocaleString()}</p>
+                   <label className="text-[10px] font-black uppercase text-urban-taupe">Upfront Cash Needed</label>
+                   <p className="text-4xl font-black italic text-urban-sand">KSh {moveInUpfrontRequired.toLocaleString()}</p>
+                   <p className="text-[10px] text-white/50 mt-1 uppercase font-bold tracking-tighter">Incl. Rent, 2x Deposit & Furniture</p>
+                </div>
+                <div className="h-px bg-white/10" />
+                <div>
+                   <label className="text-[10px] font-black uppercase text-urban-taupe">Remaining Post-Move Savings</label>
+                   <p className={`text-2xl font-black ${remainingSavings < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                     KSh {remainingSavings.toLocaleString()}
+                   </p>
                 </div>
             </div>
           </div>
         </div>
 
+        {/* MONTHLY CHART */}
         <section className="premium-card p-12 mt-12 bg-white shadow-xl">
-            <h3 className="text-sm font-black uppercase tracking-widest text-urban-taupe mb-8">Monthly Breakdown</h3>
+            <h3 className="text-sm font-black uppercase tracking-widest text-urban-taupe mb-8">Monthly Recurring Spending</h3>
             <div className="space-y-6">
-              {[ { label: "Rent", value: rent }, { label: "Food", value: monthlyFood }, { label: "Transport", value: TRANSPORT }, { label: "Utilities", value: UTILITIES } ].map(item => {
-                const percentage = ((item.value / income) * 100).toFixed(1);
+              {[ { label: "Rent", value: rent }, { label: "Food", value: monthlyFood }, { label: "Transport", value: FIXED_TRANSPORT }, { label: "Utilities", value: FIXED_UTILITIES } ].map(item => {
+                const percentage = ((item.value / userIncome) * 100).toFixed(1);
                 return (
                   <div key={item.label} className="flex items-center gap-4">
                     <div className="w-24 text-left font-bold text-black">{item.label}</div>
                     <div className="flex-1 bg-urban-border h-3 rounded-full overflow-hidden relative">
-                      <div className="absolute inset-y-0 left-0 bg-urban-sand rounded-full" style={{width: `${percentage}%`}} />
+                      <div className="absolute inset-y-0 left-0 bg-urban-sand rounded-full transition-all duration-700" style={{width: `${percentage}%`}} />
                     </div>
-                    <div className="w-40 text-right font-black text-urban-taupe text-sm">{percentage}% | KSh {item.value.toLocaleString()}</div>
+                    <div className="w-48 text-right font-black text-urban-taupe text-sm">KSh {item.value.toLocaleString()} ({percentage}%)</div>
                   </div>
                 );
               })}
+            </div>
+            <div className="h-px bg-urban-border my-8" />
+            <div className="flex justify-between items-center">
+               <span className="text-xl font-bold uppercase tracking-tighter">Net Monthly Savings</span>
+               <span className={`text-4xl font-black ${disposableIncome < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                 KSh {disposableIncome.toLocaleString()}
+               </span>
             </div>
         </section>
       </div>
