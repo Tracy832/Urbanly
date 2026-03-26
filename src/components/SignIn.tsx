@@ -21,7 +21,7 @@ const SignIn: React.FC<SignInProps> = ({ setAuth }) => {
     setError('');
 
     if (!validatePassword(password)) {
-      setError("Invalid password format. Check complexity requirements.");
+    setError("Invalid password format.The password must be exactly 8 characters long and include at least one uppercase letter, one lowercase letter, and one special symbol.");
       return;
     }
 
