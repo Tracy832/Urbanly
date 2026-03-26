@@ -9,8 +9,8 @@ const SignUp: React.FC = () => {
   const [error, setError] = useState('');
 
   const validatePassword = (pass: string) => {
-    // Regex: Exactly 8 chars, 1 Upper, 1 Lower, 1 Special
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8}$/;
+    // Regex: At least 8 chars, 1 Upper, 1 Lower, 1 Special
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
     return regex.test(pass);
   };
 
@@ -19,7 +19,7 @@ const SignUp: React.FC = () => {
     setError('');
 
     if (!validatePassword(password)) {
-      setError("Password must be exactly 8 characters with 1 uppercase, 1 lowercase, and 1 special symbol.");
+      setError("Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 special symbol.");
       return;
     }
 

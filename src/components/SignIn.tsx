@@ -12,7 +12,7 @@ const SignIn: React.FC<SignInProps> = ({ setAuth }) => {
   const [error, setError] = useState('');
 
   const validatePassword = (pass: string) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8}$/;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
     return regex.test(pass);
   };
 
